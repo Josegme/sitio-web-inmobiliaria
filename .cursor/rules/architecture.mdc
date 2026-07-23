@@ -1,0 +1,41 @@
+---
+description: Arquitectura del proyecto — carpetas, capas y flujo de datos
+alwaysApply: true
+---
+
+# Arquitectura — Inmobiliaria
+
+Este proyecto es un sitio web de inmobiliaria construido con **Next.js 16 (App Router) + TypeScript + Tailwind v4 + shadcn/ui + react-hook-form + Zod**.
+
+## Capas y responsabilidades
+
+- `src/app/` — **Rutas**. Cada carpeta es una URL. `layout.tsx` para layouts anidados, `page.tsx` para páginas. Route groups con `(paréntesis)` no afectan la URL, solo agrupan.
+- `src/components/` — **UI transversal** sin lógica de dominio.
+  - `ui/` — componentes de shadcn/ui (Button, Card, Input, etc.).
+  - `layout/` — Navbar, Footer, Container, MobileMenu.
+  - `common/` — componentes reutilizables (WhatsAppFloatingButton, SocialIcons, SectionHeading, ThemeToggle).
+  - `forms/` — wrappers finos para formularios (FormField).
+  - `providers/` — providers de contexto (ThemeProvider).
+- `src/features/<dominio>/` — **Módulos de dominio**. Todo lo relacionado a un módulo vive en su carpeta:
+  - `components/` — componentes específicos del dominio.
+  - `types.ts` — tipos del dominio.
+  - `schemas.ts` — schemas de validación con Zod (formularios).
+  - `mock-data.ts` — datos de ejemplo (reemplazables por fetch real).
+  - `actions.ts` — Server Actions (formularios / mutaciones).
+- `src/lib/` — utilidades cross-cutting (`constants.ts`, `format.ts`, `utils.ts`).
+- `src/hooks/` — hooks reutilizables.
+
+## Reglas de dependencia (importante)
+
+- `features/A` **NO** debe importar de `features/B`. Si necesitan compartir algo, subilo a `lib/` o `components/`.
+- `components/` **NO** debe importar de `features/`. Los `components/` son genéricos.
+- `app/` puede importar de todo el resto.
+- `lib/` y `hooks/` no deben importar de `features/` ni de `components/`.
+
+## Convención de "1 componente = 1 archivo"
+
+Cada componente vive en su propio archivo con el mismo nombre en `PascalCase`. Exports nombrados (no `export default`), excepto `page.tsx` y `layout.tsx` de Next.js.
+
+## Datos: mock hoy, real mañana
+
+Toda página consume datos desde `features/<dominio>/mock-data.ts`. Cuando exista backend, reemplazar el mock por una función `fetchXxx()` con la misma firma (mismo tipo de retorno). Ningún componente conoce la fuente de datos — es un detalle interno del feature.

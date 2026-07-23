@@ -1,0 +1,28 @@
+---
+description: Puntos de extensión reservados para módulos de IA del equipo
+alwaysApply: true
+---
+
+# Puntos de extensión — dónde va cada módulo
+
+El proyecto está scaffoldeado con puntos de extensión bien delimitados para que cada integrante sume su módulo en su propia rama sin romper lo existente.
+
+Cada punto se marca con un comentario `// TODO: [MÓDULO] — ...` en el código, y las reglas de dependencia (ver `architecture.mdc`) garantizan que los cambios queden aislados dentro del feature correspondiente.
+
+## Módulos y sus puntos de entrada
+
+| Módulo | Responsable | Archivo principal | Qué hacer |
+|---|---|---|---|
+| **Automatización de leads** | Yo (dueño del scaffold) | `src/features/leads/actions.ts` | Reemplazar el stub del Server Action por integración real (webhook, CRM, email). |
+| **Búsqueda inteligente en Galería** | Compañero A | `src/features/properties/components/PropertySearchBar.tsx` + `src/app/(marketing)/galeria/page.tsx` | Convertir el handler `onSearch` en llamada a un Server Action/Route Handler que filtre `MOCK_PROPERTIES` con IA. Mantener el retorno como `Property[]`. |
+| **Chatbot con IA** | Compañero B | `src/features/chatbot/components/ChatbotWidgetPlaceholder.tsx` | Reemplazar el `return null` por el widget flotante real. Ya está montado en el `MarketingLayout`. |
+| **Cotizador inteligente** | Compañero C | `src/features/quotation/calculator.ts` | Mantener la firma `(input: QuotationFormData) => QuotationResult`. Reemplazar el cálculo mock por lógica IA. Si pasa a async, cambiar la firma a `Promise<QuotationResult>` — el form ya usa `await`. |
+| **Acceso de Clientes (auth real)** | Sin asignar | `src/features/clients/components/LoginForm.tsx` + `src/app/clientes/layout.tsx` + `src/features/clients/mock-data.ts` | Implementar autenticación (NextAuth, Clerk, Supabase Auth, Better-Auth). Reemplazar el mock del profile por el usuario autenticado. Proteger `/clientes/panel` en el layout. |
+
+## Reglas de oro para los módulos
+
+1. **No borrar los `TODO: [MÓDULO]`** — al contrario, agregarles el commit hash cuando la implementación quede lista.
+2. **No cambiar el shape de los tipos públicos** de otro feature (ej. `Property`, `QuotationResult`). Si necesitás algo más, extendé el tipo.
+3. **No importar de otro feature**. Si necesitás compartir algo, subilo a `lib/` o `components/common/`.
+4. **Toda variable de entorno nueva** debe agregarse a `.env.local.example` con un comentario que explique para qué sirve.
+5. **Cada módulo en su propia rama Git**: `feature/leads-automation`, `feature/gallery-search`, `feature/chatbot`, `feature/quotation-ai`, `feature/clients-auth`. Merges a `main` vía PR.

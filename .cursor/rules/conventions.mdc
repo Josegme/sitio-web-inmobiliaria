@@ -1,0 +1,57 @@
+---
+description: Convenciones de código, naming e imports
+alwaysApply: true
+---
+
+# Convenciones — Inmobiliaria
+
+## Idioma
+- **UI y textos visibles**: español (Argentina). Usar pesos `$`, formatos `+54` para teléfonos.
+- **Código, comentarios técnicos, nombres de variables**: español o inglés (mantener consistencia con el archivo que se está editando).
+- **Nombres de archivos y rutas técnicas**: inglés (`components/`, `features/`, `hooks/`).
+- **Rutas de URL visibles**: español (`/quienes-somos`, `/galeria`, `/clientes/login`).
+
+## Naming
+- Componentes React: `PascalCase.tsx` (ej. `PropertyCard.tsx`).
+- Utilidades / schemas / mock-data / hooks: `kebab-case.ts` o descriptivo (ej. `mock-data.ts`, `use-mobile.ts`).
+- Tipos e interfaces: `PascalCase`.
+- Constantes globales: `UPPER_SNAKE_CASE` (ej. `COMPANY_INFO`, `ROUTES`).
+- Enums en Zod: valores en `kebab-case` cuando aparecen en URLs, `camelCase` cuando son solo internos.
+
+## Imports
+- Siempre absolutos con alias `@/` (ej. `import { PropertyCard } from "@/features/properties/components/PropertyCard"`).
+- Nunca imports relativos con `../../`.
+- Orden: (1) libs externas, (2) módulos internos con `@/`, (3) imports de tipo (`import type`).
+
+## Exports
+- Exports nombrados (`export function Foo() {}`), no `export default`.
+- Excepciones obligatorias: `page.tsx`, `layout.tsx`, `not-found.tsx`, `sitemap.ts`, `robots.ts`, `next.config.ts`.
+
+## Server vs Client Components
+- Todo es Server Component por default.
+- Marcar `"use client"` **solo** cuando el componente use estado, efectos, o event handlers.
+- Los formularios (react-hook-form) son client. Los Server Actions son server (`"use server"`).
+
+## Formularios
+- Validación con Zod. El schema es la fuente de verdad — el tipo del formulario se infiere con `z.infer<>`.
+- Usar `react-hook-form` con `zodResolver`.
+- Envolver cada campo con `<FormField id label error>` para mantener el layout consistente.
+- Nunca ocultar mensajes de error — mostrarlos siempre con `role="alert"`.
+
+## Links y botones
+- **Prohibido** `href="#"` o `onClick` que no haga nada.
+- Si un destino todavía no está definido: (a) marcarlo como `isPlaceholder: true` en la fuente de datos y renderizarlo visualmente atenuado, o (b) apuntar a una ancla interna documentada (ej. `#pagos`).
+- Usar `<Link>` de `next/link` para rutas internas. `<a>` solo para externos, `tel:`, `mailto:` o `#anchor`.
+
+## Imágenes
+- Siempre `next/image`. Nunca `<img>`.
+- Alt text descriptivo obligatorio.
+- Usar `sizes` para `fill` (ej. `sizes="(max-width: 640px) 100vw, 33vw"`).
+- Marcar `priority` solo en imágenes above-the-fold.
+- Hosts remotos deben estar en `next.config.ts` bajo `images.remotePatterns`.
+
+## Prohibido
+- Código comentado. Si no se usa, se borra (Git guarda el historial).
+- `console.log` en código de producción.
+- Comentarios triviales que repiten el código. Comentarios sí, solo para explicar el **por qué** o marcar `TODO: [MÓDULO]`.
+- Duplicar lógica entre componentes: subirla a `lib/` o crear un hook.
