@@ -11,17 +11,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loginFormSchema, type LoginFormData } from "@/features/clients/schemas";
 import { ROUTES } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
+
+/**
+ * Traduce los errores más comunes de Supabase Auth al español, acorde
+ * a la convención de idioma del sitio. El resto cae a un mensaje genérico.
+ */
+function translateAuthError(message: string): string {
+  if (message === "Invalid login credentials") {
+    return "Email o contraseña incorrectos.";
+  }
+  return "Ocurrió un error al iniciar sesión. Intentá de nuevo.";
+}
 
 /**
  * Formulario de login del portal de clientes.
  *
- * TODO: [AUTH] — implementar autenticación real.
- * Hoy: valida email + password, simula 500ms de latencia y navega
- * directamente al panel. Sin sesión, cookies ni JWT.
- *
- * Cuando se implemente auth (por ej. NextAuth/Auth.js, Supabase Auth,
- * Clerk, Better-Auth), reemplazar el stub del `onSubmit` por la llamada
- * real. La UI y validación quedan intactas.
+ * TODO: [AUTH] — resuelto: autenticación real vía Supabase Auth
+ * (`signInWithPassword`). La UI y validación quedan intactas.
  */
 export function LoginForm() {
   const router = useRouter();
@@ -36,11 +43,22 @@ export function LoginForm() {
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = handleSubmit(async () => {
+  const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
-    // TODO: [AUTH] — reemplazar por autenticación real.
-    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: values.email,
+      password: values.password,
+    });
+
+    if (error) {
+      setServerError(translateAuthError(error.message));
+      return;
+    }
+
     router.push(ROUTES.clientsPanel);
+    router.refresh();
   });
 
   return (

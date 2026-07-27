@@ -9,9 +9,9 @@ import type { ReactNode } from "react";
  * con la del sitio comercial. Cada página (`login`, `panel`) monta
  * su propio header (ver `ClientPanelLayout`).
  *
- * TODO: [AUTH] — cuando exista autenticación real, este layout es un
- * buen lugar para leer la sesión y redirigir a `/clientes/login` si
- * el usuario no está autenticado.
+ * TODO: [AUTH] — resuelto: la protección de `/clientes/panel` quedó en
+ * `src/proxy.ts` / `src/lib/supabase/proxy.ts` (corre antes de este
+ * layout, para toda la app) en vez de acá.
  */
 export const metadata: Metadata = {
   title: {

@@ -1,12 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { ROUTES } from "@/lib/constants";
+
 /**
- * Refresca la sesión de Auth en cada request.
+ * Refresca la sesión de Auth en cada request y protege `/clientes/panel`.
  *
- * Por ahora NO redirige a login: el sitio es público y el portal de
- * clientes todavía usa mock. Cuando se implemente auth real
- * (`TODO: [AUTH]`), agregar acá la protección de `/clientes/panel`.
+ * TODO: [AUTH] — resuelto: sin sesión válida, cualquier request a
+ * `/clientes/panel` se redirige a `/clientes/login`.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -34,7 +35,13 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Importante: no ejecutar lógica entre createServerClient y getClaims().
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+
+  const isPanelRoute = request.nextUrl.pathname.startsWith(ROUTES.clientsPanel);
+  if (isPanelRoute && !data?.claims) {
+    const loginUrl = new URL(ROUTES.clientsLogin, request.url);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return supabaseResponse;
 }
