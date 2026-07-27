@@ -2,13 +2,17 @@
 -- Correr en: Dashboard → SQL Editor → New query → Run
 -- Proyecto: kegnvggnfyfdimkvoeqp
 --
--- profiles: 1:1 con auth.users. NO hay trigger de auto-creación: los
--- usuarios de prueba se crean a mano en Auth y su fila de profiles se
--- carga a mano (Table Editor / SQL Editor) con el mismo `id`.
--- client_operations: reemplaza a MOCK_CLIENT_OPERATIONS, también se carga a mano.
+-- profiles: 1:1 con auth.users. Se crea sola gracias al trigger
+-- `on_auth_user_created` (al final de este archivo): al crear un usuario
+-- de prueba desde Authentication → Users → Add user, podés completar el
+-- campo "User Metadata" con `{"full_name": "Nombre Apellido"}` para que
+-- el trigger lo use. Si lo dejás vacío, el profile se crea igual, con
+-- el placeholder "Sin nombre" (después se puede corregir a mano).
+-- client_operations: reemplaza a MOCK_CLIENT_OPERATIONS, se carga a mano
+-- (Table Editor / SQL Editor) por cada operación de cada cliente.
 --
 -- Si ya corriste una versión anterior, este script es idempotente:
--- vuelve a aplicar grants + policies.
+-- vuelve a aplicar grants + policies + trigger.
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -60,3 +64,40 @@ create policy "own_operations_select"
   for select
   to authenticated
   using (auth.uid() = user_id);
+
+-- =====================================================================
+-- Trigger: auto-crear profile al crear un usuario en auth.users
+--
+-- Por qué existe: `profiles` es 1:1 con `auth.users`, pero Supabase
+-- no crea esa fila sola. Sin este trigger, cada vez que se crea un
+-- usuario a mano desde el Dashboard (Authentication → Users → Add user),
+-- alguien tendría que acordarse de insertar también la fila en
+-- `profiles` — si se olvida, el login funciona pero el panel del
+-- cliente se muestra vacío (falta el full_name).
+--
+-- Qué hace: después de cada INSERT en auth.users, crea automáticamente
+-- la fila correspondiente en public.profiles, usando el metadata
+-- `full_name` si se cargó al crear el usuario (Dashboard permite
+-- setear "User Metadata" en JSON), o un placeholder si no.
+-- =====================================================================
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', 'Sin nombre')
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
