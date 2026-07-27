@@ -27,8 +27,8 @@ function translateAuthError(message: string): string {
 /**
  * Formulario de login del portal de clientes.
  *
- * TODO: [AUTH] — resuelto: autenticación real vía Supabase Auth
- * (`signInWithPassword`). La UI y validación quedan intactas.
+ * TODO: [AUTH] — resuelto (commit 8b318cd): autenticación real vía
+ * Supabase Auth (`signInWithPassword`). La UI y validación quedan intactas.
  */
 export function LoginForm() {
   const router = useRouter();

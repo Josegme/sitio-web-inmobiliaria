@@ -6,8 +6,8 @@ import { ROUTES } from "@/lib/constants";
 /**
  * Refresca la sesión de Auth en cada request y protege `/clientes/panel`.
  *
- * TODO: [AUTH] — resuelto: sin sesión válida, cualquier request a
- * `/clientes/panel` se redirige a `/clientes/login`.
+ * TODO: [AUTH] — resuelto (commit 8b318cd): sin sesión válida, cualquier
+ * request a `/clientes/panel` se redirige a `/clientes/login`.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

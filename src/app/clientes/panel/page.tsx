@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description: "Panel privado del cliente con sus operaciones y servicios.",
 };
 
-// TODO: [AUTH] — resuelto: datos reales desde Supabase (profiles + client_operations).
+// TODO: [AUTH] — resuelto (commit 8b318cd): datos reales desde Supabase (profiles + client_operations).
 export default async function ClientPanelPage() {
   const supabase = await createClient();
 

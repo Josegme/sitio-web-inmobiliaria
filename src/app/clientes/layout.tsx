@@ -9,9 +9,9 @@ import type { ReactNode } from "react";
  * con la del sitio comercial. Cada página (`login`, `panel`) monta
  * su propio header (ver `ClientPanelLayout`).
  *
- * TODO: [AUTH] — resuelto: la protección de `/clientes/panel` quedó en
- * `src/proxy.ts` / `src/lib/supabase/proxy.ts` (corre antes de este
- * layout, para toda la app) en vez de acá.
+ * TODO: [AUTH] — resuelto (commit 8b318cd): la protección de
+ * `/clientes/panel` quedó en `src/proxy.ts` / `src/lib/supabase/proxy.ts`
+ * (corre antes de este layout, para toda la app) en vez de acá.
  */
 export const metadata: Metadata = {
   title: {
