@@ -1,9 +1,8 @@
 "use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { FormField } from "@/components/forms/FormField";
 import { Button } from "@/components/ui/button";
@@ -16,13 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { QuotationResult } from "@/features/quotation/components/QuotationResult";
-import { calculateQuotation, QUOTATION_OPTIONS } from "@/features/quotation/calculator";
+import { calculateQuotation, createPropertyByType, findMatchingProperty, QUOTATION_OPTIONS } from "@/features/quotation/calculator";
 import {
   quotationFormSchema,
   type QuotationFormData,
   type QuotationFormInput,
 } from "@/features/quotation/schemas";
 import type { QuotationResult as QuotationResultType } from "@/features/quotation/types";
+import type { Property } from "@/features/properties/types";
+import Image from "next/image";
 
 /**
  * Formulario de cotización. Valida con Zod y usa el calculador mock
@@ -35,6 +36,7 @@ import type { QuotationResult as QuotationResultType } from "@/features/quotatio
  */
 export function QuotationForm() {
   const [result, setResult] = useState<QuotationResultType | null>(null);
+  const [previewProperty, setPreviewProperty] = useState<Property | null>(null);
 
   const {
     register,
@@ -52,6 +54,23 @@ export function QuotationForm() {
       condition: undefined,
     },
   });
+
+  // Observar cambios en los campos del formulario para actualizar la vista previa
+  const formData = useWatch({
+    control,
+  });
+
+  // Actualizar la propiedad de vista previa cuando cambian los datos del formulario
+  useEffect(() => {
+    // Solo buscar si tenemos datos suficientes (tipo de propiedad es obligatorio)
+    if (formData?.propertyType) {
+      const matching = findMatchingProperty(formData as QuotationFormData);
+      // Si no hay coincidencia, crear una basada en el tipo para mostrar la imagen correcta
+      setPreviewProperty(matching || createPropertyByType(formData.propertyType));
+    } else {
+      setPreviewProperty(null);
+    }
+  }, [formData]);
 
   const onSubmit = handleSubmit(async (data) => {
     const computed = await Promise.resolve(calculateQuotation(data));
@@ -205,12 +224,38 @@ export function QuotationForm() {
       <div className="lg:sticky lg:top-24 lg:h-fit">
         {result ? (
           <QuotationResult result={result} />
+        ) : previewProperty ? (
+          <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-6">
+            <p className="text-sm font-medium text-muted-foreground">
+              Vista previa de propiedad similar
+            </p>
+            <div className="overflow-hidden rounded-lg border shadow-sm">
+              <Image
+                src={previewProperty.imageUrl}
+                alt={previewProperty.imageAlt}
+                width={600}
+                height={300}
+                className="h-48 w-full object-cover transition-all hover:scale-105"
+              />
+            </div>
+            <div className="space-y-2">
+              <p className="font-semibold text-foreground">{previewProperty.title}</p>
+              <p className="text-sm text-muted-foreground">
+                {previewProperty.location.neighborhood}, {previewProperty.location.city}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {previewProperty.features.areaM2} m² • {previewProperty.features.bedrooms} dormitorios
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground italic">
+              Esta es una propiedad similar a la que estás cotizando. Completá el formulario para obtener el valor estimado.
+            </p>
+          </div>
         ) : (
           <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
             <p className="font-heading text-lg">Tu cotización aparecerá acá</p>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Completá el formulario y presioná el botón para obtener una
-              estimación en el momento.
+              Completá el formulario y verás propiedades similares mientras escribís.
             </p>
           </div>
         )}
