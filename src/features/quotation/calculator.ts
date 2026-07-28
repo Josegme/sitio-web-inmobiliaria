@@ -1,5 +1,8 @@
 import type { QuotationFormData } from "@/features/quotation/schemas";
 import type { QuotationResult } from "@/features/quotation/types";
+import { MOCK_PROPERTIES } from "@/features/properties/mock-data";
+import type { Property } from "@/features/properties/types";
+import { getPropertyImageByType } from "@/features/quotation/property-images";
 
 /**
  * TODO: [QUOTATION] — reemplazar por lógica de cotización inteligente (IA).
@@ -50,6 +53,64 @@ const CONDITION_MULTIPLIERS: Record<QuotationFormData["condition"], number> = {
 const RENT_MONTHLY_YIELD = 0.005; // ~6% anual
 const CONFIDENCE_PERCENT = 12;
 
+/**
+ * Busca una propiedad en MOCK_PROPERTIES que coincida con los criterios de cotización.
+ * Prioriza coincidencia exacta en tipo, operación y barrio. Si no encuentra exacta,
+ * busca por tipo y operación. Si no encuentra, devuelve null.
+ * Exportada para ser reutilizada en el formulario para vista previa en tiempo real.
+ */
+export function findMatchingProperty(input: QuotationFormData): Property | null {
+  const normalizedNeighborhood = input.neighborhood.trim().toLowerCase();
+  
+  // Primero: búsqueda exacta (tipo, operación y barrio)
+  const exactMatch = MOCK_PROPERTIES.find(
+    (prop) =>
+      prop.type === input.propertyType &&
+      prop.operation === input.operation &&
+      prop.location.neighborhood.toLowerCase() === normalizedNeighborhood
+  );
+  
+  if (exactMatch) return exactMatch;
+  
+  // Segundo: búsqueda por tipo y operación (sin importar barrio)
+  const typeOperationMatch = MOCK_PROPERTIES.find(
+    (prop) =>
+      prop.type === input.propertyType &&
+      prop.operation === input.operation
+  );
+  
+  if (typeOperationMatch) return typeOperationMatch;
+  
+  // Tercero: búsqueda solo por tipo (cualquier operación)
+  const typeMatch = MOCK_PROPERTIES.find(
+    (prop) => prop.type === input.propertyType
+  );
+  
+  return typeMatch || null;
+}
+
+/**
+ * Crea una propiedad mock basada en el tipo de propiedad para mostrar la imagen correcta
+ * cuando no hay una propiedad coincidente en MOCK_PROPERTIES.
+ */
+export function createPropertyByType(propertyType: string): Property {
+  return {
+    id: `mock-${propertyType}`,
+    title: `${propertyType.charAt(0).toUpperCase() + propertyType.slice(1)}`,
+    slug: propertyType,
+    operation: "venta",
+    type: propertyType as any,
+    price: 0,
+    currency: "USD",
+    location: { neighborhood: "", city: "" },
+    features: { bedrooms: 0, bathrooms: 0, areaM2: 0 },
+    imageUrl: getPropertyImageByType(propertyType),
+    imageAlt: `Imagen de ${propertyType}`,
+    featured: false,
+    description: "",
+  };
+}
+
 function getNeighborhoodMultiplier(neighborhood: string): number {
   const key = neighborhood.trim().toLowerCase();
   return NEIGHBORHOOD_MULTIPLIERS[key] ?? 1;
@@ -78,12 +139,21 @@ export function calculateQuotation(input: QuotationFormData): QuotationResult {
     ? roundToPresentable(totalSalePrice)
     : roundToPresentable(totalSalePrice * RENT_MONTHLY_YIELD * 1_100); // ARS/mes aprox
 
+  // Buscar propiedad coincidente para mostrar su imagen
+  let matchingProperty = findMatchingProperty(input);
+  
+  // Si no hay propiedad coincidente, crear una basada en el tipo para mostrar la imagen correcta
+  if (!matchingProperty && input.propertyType) {
+    matchingProperty = createPropertyByType(input.propertyType);
+  }
+
   return {
     estimatedPrice,
     currency: isSale ? "USD" : "ARS",
     confidencePercent: CONFIDENCE_PERCENT,
     pricePerM2: roundToPresentable(pricePerM2),
     input,
+    matchingProperty,
   };
 }
 
