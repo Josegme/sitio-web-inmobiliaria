@@ -66,6 +66,33 @@ git --version
 
 ---
 
+## Módulo de Clientes (auth con Supabase)
+
+El portal de clientes (`/clientes/login` y `/clientes/panel`) usa autenticación real con **Supabase Auth**. Sin los pasos de abajo, la pantalla de login carga pero `signInWithPassword` va a fallar (no hay backend al que loguearse).
+
+### 1. Variables de entorno
+
+Ya están declaradas en `.env.local.example` — solo hay que completarlas en tu `.env.local` con los valores reales del proyecto:
+
+| Variable | Dónde conseguirla |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Dashboard de Supabase → Project Settings → API Keys |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Dashboard de Supabase → Project Settings → API Keys |
+
+### 2. Correr la migración
+
+Antes de poder loguearse, hay que correr la migración `supabase/migrations/20260727130000_create_clients_auth.sql` en el **SQL Editor** del proyecto de Supabase (Dashboard → SQL Editor → New query → pegar el contenido → Run). Crea las tablas `profiles` y `client_operations`, sus policies de RLS, y el trigger que auto-crea el `profile` de cada usuario nuevo.
+
+### 3. Crear un usuario de prueba
+
+Los clientes no se registran solos: los usuarios de prueba se crean a mano desde el Dashboard.
+
+1. Dashboard de Supabase → **Authentication → Users → Add user**.
+2. Cargar email y contraseña — son las credenciales para loguearse en `/clientes/login`.
+3. Opcional: completar **"User Metadata"** con `{"full_name": "Nombre Apellido"}` para que el trigger cree el `profile` con ese nombre. Si se deja vacío, el `profile` se crea igual, con el placeholder `"Sin nombre"`.
+
+---
+
 ## Scripts disponibles
 
 | Comando | Qué hace |
