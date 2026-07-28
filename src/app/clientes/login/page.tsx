@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/features/clients/components/LoginForm";
 import { COMPANY_INFO, ROUTES } from "@/lib/constants";
 
@@ -12,7 +13,14 @@ export const metadata: Metadata = {
 
 export default function ClientLoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
+      <Button asChild variant="ghost" size="sm" className="absolute left-4 top-4 sm:left-6 sm:top-6">
+        <Link href={ROUTES.home}>
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Volver al inicio
+        </Link>
+      </Button>
+
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <Link
           href={ROUTES.home}
