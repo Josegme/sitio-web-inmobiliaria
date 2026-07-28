@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { QuotationResult as QuotationResultType } from "@/features/quotation/types";
 import { formatCurrency } from "@/lib/format";
+import Image from "next/image";
 
 interface QuotationResultProps {
   result: QuotationResultType;
@@ -15,10 +16,14 @@ interface QuotationResultProps {
  * `features/quotation/calculator.ts`.
  */
 export function QuotationResult({ result }: QuotationResultProps) {
-  const { estimatedPrice, currency, confidencePercent, pricePerM2, input } = result;
+  const { estimatedPrice, currency, confidencePercent, pricePerM2, input, matchingProperty } = result;
   const lowerBound = Math.round(estimatedPrice * (1 - confidencePercent / 100));
   const upperBound = Math.round(estimatedPrice * (1 + confidencePercent / 100));
   const isSale = input.operation === "venta";
+
+  // Usamos la imagen de la propiedad coincidente si existe
+  const imageUrl = matchingProperty?.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80";
+  const imageAlt = matchingProperty?.imageAlt || `Imagen ilustrativa de ${input.propertyType}`;
 
   return (
     <Card className="border-primary/30 bg-primary/5 p-0">
@@ -40,6 +45,17 @@ export function QuotationResult({ result }: QuotationResultProps) {
               ) : null}
             </h3>
           </div>
+        </div>
+
+        {/* Imagen de la propiedad coincidente */}
+        <div className="overflow-hidden rounded-lg border shadow-sm">
+          <Image
+            src={imageUrl}
+            alt={imageAlt}
+            width={600}
+            height={300}
+            className="h-48 w-full object-cover transition-all hover:scale-105"
+          />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
@@ -82,3 +98,4 @@ function StatBlock({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
