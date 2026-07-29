@@ -134,3 +134,29 @@
     @apply font-heading tracking-tight;
   }
 }
+
+/* Embed @n8n/chat en /admin: altura real + texto legible en dark mode */
+.admin-n8n-chat {
+  --chat--input--text-color: #101330;
+  --chat--color-dark: #101330;
+  --chat--heading--font-size: 1.35rem;
+}
+
+.admin-n8n-chat > .chat-layout {
+  height: 100%;
+  overflow: hidden;
+}
+
+.admin-n8n-chat .chat-body {
+  min-height: 0;
+}
+
+.admin-n8n-chat .chat-footer {
+  flex-shrink: 0;
+}
+
+.admin-n8n-chat textarea {
+  color: #101330 !important;
+  caret-color: #101330;
+  pointer-events: auto;
+}

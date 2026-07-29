@@ -67,6 +67,7 @@ export const ROUTES = {
   quotation: "/cotizar",
   clientsLogin: "/clientes/login",
   clientsPanel: "/clientes/panel",
+  admin: "/admin",
 } as const;
 
 /**
